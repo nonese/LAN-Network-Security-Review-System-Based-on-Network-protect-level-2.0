@@ -65,7 +65,7 @@ public class MysqlGenerator {
 
         // 数据源配置
         DataSourceConfig dsc = new DataSourceConfig();
-        dsc.setUrl("jdbc:mysql://192.168.2.184:3307/qqbot");
+        dsc.setUrl("jdbc:mysql://192.168.2.184:3307/Network_Security_Review_System");
         // dsc.setSchemaName("public");
         dsc.setDriverName("com.mysql.jdbc.Driver");
         dsc.setUsername("test");
