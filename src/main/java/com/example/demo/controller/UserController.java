@@ -3,7 +3,14 @@ package com.example.demo.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.Util.Getuuid;
+import com.example.demo.Util.LoginUtil;
+import com.example.demo.Util.QEncodeUtil;
 import com.example.demo.config.CommonCo;
+import com.example.demo.entity.SessionList;
+import com.example.demo.entity.SystemLog;
+import com.example.demo.entity.User;
+import com.example.demo.service.ISessionListService;
+import com.example.demo.service.ISystemLogService;
 import com.example.demo.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,26 +40,59 @@ import java.util.Map;
 public class UserController {
     @Autowired
     IUserService userService;
-    //@Autowired
-    //ISessionListService sessionListService;
+    @Autowired
+    ISessionListService sessionListService;
+    @Autowired
+    ISystemLogService systemLogService;
+    SystemLog log =new SystemLog();
     @RequestMapping(value = "/login",method = RequestMethod.POST)
-    public String login(HttpServletRequest request, HttpServletResponse response){
+    public String login(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        Date date = new Date();
+        String date2=formatter.format(date);
         response.addHeader("Access-Control-Allow-Origin","*");
         Map<String,Object> columnMap = new HashMap<>();
         String username=request.getParameter("username");
         String password=request.getParameter("password");
+        //String aespassword = QEncodeUtil.aesDecrypt(password,CommonCo.REPAIR_SECRET_KEY);;
         columnMap.put("username",username);
         columnMap.put("password",password);
         Collection user = userService.listByMap(columnMap);
         boolean loginstatus;
-        if (user.size() == 1)
-            loginstatus =true;
-        else
-            loginstatus = false;
         JSONObject result = new JSONObject();
         result.put("statuscode","200");
-        result.put("loginstatus",loginstatus);
-        return result.toJSONString();
+        if (user.size() == 1) {
+            Object[] arr =user.toArray();
+            String message = arr[0].toString().replace("User(","");
+            String[] arrays = message.split(",");
+            String[] uuidgroup=arrays[0].split("=");
+            String uuid =uuidgroup[1];
+            loginstatus = true;
+            String skey = QEncodeUtil.aesEncrypt(Getuuid.geuuid(),CommonCo.COOKIE_SECRET_KEY);
+            Cookie cookie = new Cookie(CommonCo.SESSION_KEY,skey);
+            cookie.setMaxAge(60 * 60 * 24 * 7);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            SessionList session =new SessionList();
+            session.setSession(skey);
+            session.setTime(date2);
+            session.setUuid(uuid);
+            session.setVaild("true");
+            sessionListService.save(session);
+            response.addCookie(cookie);
+            result.put("loginstatus",loginstatus);
+            result.put("url","https://www.qq.com");
+            log.setRole("info");
+            log.setTime(date2);
+            log.setContent("用户："+username+"登陆成功！");
+            systemLogService.save(log);
+            return result.toJSONString();
+        }
+        else{
+            loginstatus = false;
+            result.put("loginstatus",loginstatus);
+            return result.toJSONString();
+        }
     }
     @RequestMapping(value = "/AddUser",method = RequestMethod.POST)
     public String addAccount(HttpServletRequest request,HttpServletResponse response) throws Exception {
@@ -73,7 +113,7 @@ public class UserController {
             result.put("url","https://www.baidu.com");
         }
         else {
-           /* User user = new User();
+           User user = new User();
             user.setUsername(username);
             user.setPassword(password);
             user.setUuid(uuid);
@@ -81,31 +121,42 @@ public class UserController {
             result.put("Username",username);
             result.put("addstatus","success");
             result.put("url","https://www.baidu.com");
-            String skey =QEncodeUtil.aesEncrypt(uuid,CommonCo.COOKIE_SECRET_KEY);
-            Cookie cookie = new Cookie(CommonCo.SESSION_KEY,skey);
-            SessionList session =new SessionList();
-            session.setSession(skey);
-            session.setTime(date2);
-            session.setVaild("true");
-            sessionListService.save(session);
-            response.addCookie(cookie);*/
+            log.setRole("info");
+            log.setTime(date2);
+            log.setContent("创建用户："+username+"成功！");
+            systemLogService.save(log);
         }
         return result.toJSONString();
     }
     @RequestMapping(value = "/Logout",method = RequestMethod.POST)
     public String Logout(HttpServletRequest request,HttpServletResponse response) throws Exception {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        Date date = new Date();
+        String date2=formatter.format(date);
         response.addHeader("Access-Control-Allow-Origin","*");
         String username=request.getParameter("username");
         JSONObject result = new JSONObject();
         result.put("statuscode","200");
-        result.put("addstatus","log out success");
-        Cookie cookie = new Cookie(CommonCo.COOKIE_KEY,null);
-        String session = (String) request.getSession().getAttribute(CommonCo.SESSION_KEY);
-        System.out.println(session);
-        Map<String,Object> columnMap = new HashMap<>();
-        columnMap.put("session",session);
-        //sessionListService.removeByMap(columnMap);
-        response.addCookie(cookie);
-        return result.toJSONString();
+        Cookie cookie = new Cookie(CommonCo.SESSION_KEY,null);
+        cookie.setMaxAge(60 * 60 * 24 * 7);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        String session = LoginUtil.getCookieValue(request,CommonCo.SESSION_KEY);
+        if (session=="") {
+            result.put("status","you have already log out!");
+            return result.toJSONString();
+        }
+        else {
+            result.put("status","log out success");
+            Map<String, Object> columnMap = new HashMap<>();
+            columnMap.put("session", session);
+            sessionListService.removeByMap(columnMap);
+            response.addCookie(cookie);
+            log.setRole("info");
+            log.setTime(date2);
+            log.setContent("用户："+username+"退出成功！");
+            systemLogService.save(log);
+            return result.toJSONString();
+        }
     }
 }
