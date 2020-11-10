@@ -242,10 +242,10 @@ public class nessustool {
     @Test
     public void test() throws IOException, InterruptedException {
         //忽视https错误
-        trust.trustEveryone();
+        //trust.trustEveryone();
 
         //创建session
-        String token =createssession();
+        //String token =createssession();
 
         //创建扫描
         //System.out.println(createscan("test1","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
@@ -269,8 +269,11 @@ public class nessustool {
 
         //创建下载文件
         //String format="html";
-        //String fileid =JSON.parseObject(creatfile(token, "14", format)).getString("file");
+        //JSONObject js =JSON.parseObject(creatfile(token, "14", format)).getString("file");
+        //String file=js.getString("file");
+        //String token2=js.getString("token");
         //System.out.println(fileid);
+        //url+"/tokens/"+token+"/download"
 
         //隔3秒获取文件状态
         //Thread.sleep(3000);

@@ -22,7 +22,7 @@ package com.example.demo.entity;
 
     private static final long serialVersionUID = 1L;
 
-    private Integer uuid;
+    private String uuid;
 
     private String name;
 

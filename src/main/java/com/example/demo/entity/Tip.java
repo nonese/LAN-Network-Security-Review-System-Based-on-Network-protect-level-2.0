@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-    import com.baomidou.mybatisplus.annotation.TableName;
     import java.io.Serializable;
     import lombok.Data;
     import lombok.EqualsAndHashCode;
@@ -12,29 +11,23 @@ package com.example.demo.entity;
     * </p>
 *
 * @author Yaojiaqi
-* @since 2020-08-27
+* @since 2020-11-10
 */
     @Data
         @EqualsAndHashCode(callSuper = false)
     @Accessors(chain = true)
-    @TableName("Device")
-    public class Device implements Serializable {
+    public class Tip implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private String name;
 
-    private String type;
+    private String date;
 
-    private String ip;
-
-    private String mac;
-
-    private String portlist;
+    private String content;
 
     private String uuid;
 
-    private String area;
+    private String readed;
 
-    private String status;
 }

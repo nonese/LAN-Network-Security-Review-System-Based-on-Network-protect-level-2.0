@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.demo.Util.Getuuid;
 import com.example.demo.Util.LoginUtil;
 import com.example.demo.Util.QEncodeUtil;
@@ -22,10 +23,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -80,8 +78,9 @@ public class UserController {
             session.setVaild("true");
             sessionListService.save(session);
             response.addCookie(cookie);
+            result.put("session",skey);
             result.put("loginstatus",loginstatus);
-            result.put("url","https://www.qq.com");
+            result.put("url","index.html");
             log.setRole("info");
             log.setTime(date2);
             log.setContent("用户："+username+"登陆成功！");
@@ -158,5 +157,36 @@ public class UserController {
             systemLogService.save(log);
             return result.toJSONString();
         }
+    }
+    @RequestMapping(value = "/validate",method = RequestMethod.POST)
+    public String validate(HttpServletRequest request,HttpServletResponse response) throws Exception {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        response.addHeader("Access-Control-Allow-Origin","*");
+        String sessionid =request.getParameter("sessionid").replace(" ","+");
+        System.out.println(sessionid);
+        JSONObject result = new JSONObject();
+        result.put("statuscode","200");
+        QueryWrapper<SessionList> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("session",sessionid);
+        List<SessionList> datas = sessionListService.list(sectionQueryWrapper);
+        System.out.println(datas);
+        if (datas.isEmpty()==true){
+            result.put("status","false");
+        }
+        else {
+            for (SessionList data : datas) {
+                Date d1=new Date();
+                Date d2=formatter.parse(data.getTime());
+                boolean checktime=d1.before(d2);
+                if (checktime){
+                    result.put("status","success");
+                }
+                else {
+                    result.put("status","false");
+                }
+            }
+        }
+        //System.out.println(result.toString());
+        return result.toString();
     }
 }
