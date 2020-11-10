@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.demo.Util.Getuuid;
@@ -117,6 +118,26 @@ public class UserController {
             systemLogService.save(log);
         }
         return result.toJSONString();
+    }
+    @RequestMapping(value = "/list",method = RequestMethod.POST)
+    public String list(HttpServletRequest request,HttpServletResponse response) throws Exception {
+        response.addHeader("Access-Control-Allow-Origin","*");
+        QueryWrapper<User> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("role",request.getParameter("role"));
+        List<User> userInfos=userService.list(sectionQueryWrapper);
+        JSONObject result = new JSONObject();
+        JSONArray jsonArray=new JSONArray();
+        for (User data:userInfos){
+            JSONObject jsonObject =new JSONObject();
+            jsonObject.put("tole",data.getRole());
+            jsonObject.put("content",data.getUsername());
+            jsonObject.put("time",data.getUuid());
+            jsonArray.add(jsonObject);
+        }
+        result.put("data",jsonArray);
+        result.put("statuscode","200");
+        result.put("status","success");
+        return result.toString();
     }
     @RequestMapping(value = "/Logout",method = RequestMethod.POST)
     public String Logout(HttpServletRequest request,HttpServletResponse response) throws Exception {
