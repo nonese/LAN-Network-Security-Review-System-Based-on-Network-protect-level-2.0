@@ -28,5 +28,6 @@ package com.example.demo.entity;
 
     private String password;
 
+    private String role;
 
 }

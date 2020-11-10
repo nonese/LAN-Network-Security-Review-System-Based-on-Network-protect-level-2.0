@@ -49,47 +49,39 @@ public class UserController {
         Date date = new Date();
         String date2=formatter.format(date);
         response.addHeader("Access-Control-Allow-Origin","*");
-        Map<String,Object> columnMap = new HashMap<>();
         String username=request.getParameter("username");
         String password=request.getParameter("password");
-        //String aespassword = QEncodeUtil.aesDecrypt(password,CommonCo.REPAIR_SECRET_KEY);;
-        columnMap.put("username",username);
-        columnMap.put("password",password);
-        Collection user = userService.listByMap(columnMap);
         boolean loginstatus;
         JSONObject result = new JSONObject();
         result.put("statuscode","200");
-        if (user.size() == 1) {
-            Object[] arr =user.toArray();
-            String message = arr[0].toString().replace("User(","");
-            String[] arrays = message.split(",");
-            String[] uuidgroup=arrays[0].split("=");
-            String uuid =uuidgroup[1];
-            loginstatus = true;
+        QueryWrapper<User> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("username",username);
+        sectionQueryWrapper.eq("password",password);
+        List<User> datas = userService.list(sectionQueryWrapper);
+        if (datas.isEmpty() ==true) {
+            loginstatus = false;
+            result.put("loginstatus",loginstatus);
+            return result.toJSONString();
+        }
+        else{
+            String uuid="";
+            String role="";
+
+            for (User data:datas){
+                uuid=data.getUuid();
+                role=data.getRole();
+            }
             String skey = QEncodeUtil.aesEncrypt(Getuuid.geuuid(),CommonCo.COOKIE_SECRET_KEY);
-            Cookie cookie = new Cookie(CommonCo.SESSION_KEY,skey);
-            cookie.setMaxAge(60 * 60 * 24 * 7);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
             SessionList session =new SessionList();
             session.setSession(skey);
             session.setTime(date2);
             session.setUuid(uuid);
             session.setVaild("true");
             sessionListService.save(session);
-            response.addCookie(cookie);
-            result.put("session",skey);
-            result.put("loginstatus",loginstatus);
-            result.put("url","index.html");
             log.setRole("info");
             log.setTime(date2);
             log.setContent("用户："+username+"登陆成功！");
             systemLogService.save(log);
-            return result.toJSONString();
-        }
-        else{
-            loginstatus = false;
-            result.put("loginstatus",loginstatus);
             return result.toJSONString();
         }
     }
@@ -109,7 +101,6 @@ public class UserController {
         Collection check = userService.listByMap(columnMap);
         if (check.size() == 1) {
             result.put("addstatus","用户名重复");
-            result.put("url","https://www.baidu.com");
         }
         else {
            User user = new User();
@@ -119,7 +110,7 @@ public class UserController {
             userService.save(user);
             result.put("Username",username);
             result.put("addstatus","success");
-            result.put("url","https://www.baidu.com");
+            result.put("url","login.html");
             log.setRole("info");
             log.setTime(date2);
             log.setContent("创建用户："+username+"成功！");
