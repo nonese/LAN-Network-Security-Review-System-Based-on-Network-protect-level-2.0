@@ -1,16 +1,59 @@
 package com.example.demo.Util;
 
+import cn.hutool.core.collection.ListUtil;
 import org.junit.Test;
-
+import com.example.demo.Util.ParseXml;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Runcommand {
-    public String cmdrunnmap() throws IOException {
+    public String cmdrunnmap(String ip) throws IOException {
+        Long timeStamp = System.currentTimeMillis();
+        String time =timeStamp.toString();
+        String file ="C:\\temp\\"+time+".txt";
+        String path = "nmap -T4 -A -v "+ip+" -oN "+file;
+        System.out.println(path);
+        Runtime run = Runtime.getRuntime();
+        try {
+            Process process = run.exec("cmd.exe /c " + path);
+            InputStream in = process.getInputStream();
+            while (in.read() != -1) {
+                System.out.println(in.read());
+            }
+            in.close();
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+    public String cmdrunnmapxml(String ip) throws IOException {
         Long timeStamp = System.currentTimeMillis();
         String time =timeStamp.toString();
         String file ="C:\\temp\\"+time+".xml";
-        String path = "nmap -T4 -A -v 192.168.2.1 -oX "+file;
+        String path = "nmap -T4 -A -v "+ip+" -oX "+file;
+        System.out.println(path);
+        Runtime run = Runtime.getRuntime();
+        try {
+            Process process = run.exec("cmd.exe /c " + path);
+            InputStream in = process.getInputStream();
+            while (in.read() != -1) {
+                System.out.println(in.read());
+            }
+            in.close();
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+    public String cmdrunquicnmap(String ip) throws IOException {
+        Long timeStamp = System.currentTimeMillis();
+        String time =timeStamp.toString();
+        String file ="C:\\temp\\"+time+".txt";
+        String path = "nmap -v -sn "+ip+" -oN "+file;
         System.out.println(path);
         Runtime run = Runtime.getRuntime();
         try {
@@ -62,7 +105,29 @@ public class Runcommand {
 
     @Test
     public void testcmd() throws IOException {
-        String show =cmdruntime("ping 127.0.0.1");
-        System.out.println(show);
+        //String show =cmdruntime("ping 127.0.0.1");
+        //String show = cmdrunquicnmap("192.168.2.0/24");
+        String show =cmdrunnmapxml("192.168.2.220");
+        //cn.hutool.core.io.file.FileReader fileReader = new cn.hutool.core.io.file.FileReader(show);
+        //System.out.println(fileReader.readString());
+        String before ="135,139,445,3389";
+        String[] arrays =before.split(",");
+        List<String> before2 = new ArrayList<>();
+        for (int i=0;i<arrays.length;i++){
+            String data =arrays[i];
+            before2.add(data);
+        }
+        ParseXml parseXml =new ParseXml();
+       List<String> result1 = parseXml.Nmapxmlparse(show);
+        List<String> result2 = new ArrayList<>();
+       for (String data:result1){
+           if (before2.contains(data)){
+           }
+           else {
+               result2.add(data);
+               System.out.println("出现额外端口："+data);
+           }
+       }
+       System.out.println(result2.toString());
     }
 }

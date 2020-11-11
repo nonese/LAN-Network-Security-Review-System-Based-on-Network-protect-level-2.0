@@ -15,7 +15,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class nessustool {
-    private final String url = "https://192.168.2.35:8834/";
+    private final String url = "https://192.168.2.21:8834/";
+    private final String fileurl = "http://192.168.2.184:8080/";
     private final String accesskey = "b4f014fbcac433d1b06f4f1c56a235a4018f5309c46a82a9cb66f33bd8e78f46";
     private final String screctkey = "cf70c07dcc641b0cf9f9a0b109383f5a8661feaa934f3d99eb8b32da1699de64";
     private final String username="shfxxbz";
@@ -231,6 +232,30 @@ public class nessustool {
         out.flush();
         out.close();
     }
+    public String uploadfile(String filecontent,String filename) throws IOException {
+        String response=null;
+        response = Jsoup.connect(fileurl+"file/html")
+                .method(Connection.Method.POST)
+                .data("content",filecontent)
+                .data("uuid",filename)
+                .ignoreContentType(true)
+                .ignoreHttpErrors(true)
+                .execute()
+                .body();
+        return response.toString();
+    }
+    public String uploadtxtfile(String filecontent,String filename) throws IOException {
+        String response=null;
+        response = Jsoup.connect(fileurl+"file/txt")
+                .method(Connection.Method.POST)
+                .data("content",filecontent)
+                .data("uuid",filename)
+                .ignoreContentType(true)
+                .ignoreHttpErrors(true)
+                .execute()
+                .body();
+        return response.toString();
+    }
     private String getUploadPath() {
         String os = System.getProperty("os.name");
         if (os.toLowerCase().startsWith("win")) {
@@ -242,13 +267,17 @@ public class nessustool {
     @Test
     public void test() throws IOException, InterruptedException {
         //忽视https错误
-        //trust.trustEveryone();
+        trust.trustEveryone();
 
         //创建session
-        //String token =createssession();
+        String token =createssession();
 
         //创建扫描
-        //System.out.println(createscan("test1","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+        //System.out.println(createscan("test2","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+       // JSONObject jsonObject =JSON.parseObject(createscan("test5","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+      //  JSONObject scan =jsonObject.getJSONObject("scan");
+      //  String id=scan.getString("id");
+       // System.out.println(id);
 
         //获取扫描模板
         //JSONObject json = JSON.parseObject(getscantemplates(token));
@@ -258,29 +287,45 @@ public class nessustool {
         //System.out.println(getscanlist(token));
         //JSONObject json = JSON.parseObject(getscanlist(token));
         //System.out.println(showlist(json));
+        //scanlaunch(token,id);
 
         //获取扫描细节
-        //System.out.println(getscandetail(token,"14"));
-
+        //System.out.println(getscandetail(token,"23"));
+        /*JSONObject jsonObject2=JSON.parseObject(getscandetail(token,id));
+        JSONObject info =jsonObject2.getJSONObject("info");
+        String status = info.getString("status");
+        System.out.println(status);
+        do {
+            Thread.sleep(3000);
+            JSONObject jsonObject3=JSON.parseObject(getscandetail(token,id));
+            JSONObject info2 =jsonObject3.getJSONObject("info");
+            status = info2.getString("status");
+            System.out.println("status:"+status+" ,now waitting!");
+        }while (status.contentEquals("running"));
+           */
         //开启扫描
-        //scanlaunch(token,"14");
+        //scanlaunch(token,id);
         //结束扫描
         //scanstop(token,"14");
 
         //创建下载文件
-        //String format="html";
-        //JSONObject js =JSON.parseObject(creatfile(token, "14", format)).getString("file");
-        //String file=js.getString("file");
-        //String token2=js.getString("token");
-        //System.out.println(fileid);
+        String format="html";
+        JSONObject js =JSON.parseObject(creatfile(token, "29", format));
+        String fileid=js.getString("file");
+        String token2=js.getString("token");
+        System.out.println(fileid);
         //url+"/tokens/"+token+"/download"
 
         //隔3秒获取文件状态
-        //Thread.sleep(3000);
-        //System.out.println(getfilestatus(token,"14",fileid));
+        Thread.sleep(3000);
+        System.out.println(getfilestatus(token,"29",fileid));
         //System.out.println(getfile(token,"14",fileid));
 
         //写入文件
+        String content=getfile(token,"29",fileid);
+        //System.out.println(uploadfile(content));
+        //System.out.println(content);
+        //System.out.println(uploadfile(content));
         //writefile(UUID.randomUUID().toString().replaceAll("-", "")+"."+format,getfile(token,"14",fileid));
         //{"status":"ready"}
     }

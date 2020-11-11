@@ -79,6 +79,9 @@ public class UserController {
             session.setUuid(uuid);
             session.setVaild("true");
             sessionListService.save(session);
+            result.put("session",skey);
+            result.put("role",role);
+            result.put("loginstatus","true");
             log.setRole("info");
             log.setTime(date2);
             log.setContent("用户："+username+"登陆成功！");
@@ -129,9 +132,9 @@ public class UserController {
         JSONArray jsonArray=new JSONArray();
         for (User data:userInfos){
             JSONObject jsonObject =new JSONObject();
-            jsonObject.put("tole",data.getRole());
-            jsonObject.put("content",data.getUsername());
-            jsonObject.put("time",data.getUuid());
+            jsonObject.put("role",data.getRole());
+            jsonObject.put("username",data.getUsername());
+            jsonObject.put("uuid",data.getUuid());
             jsonArray.add(jsonObject);
         }
         result.put("data",jsonArray);

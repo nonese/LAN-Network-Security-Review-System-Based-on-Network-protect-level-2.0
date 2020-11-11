@@ -32,5 +32,5 @@ package com.example.demo.entity;
 
     private String pid;
 
-
+    private String type;
 }
