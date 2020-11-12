@@ -49,11 +49,31 @@ public class Runcommand {
         }
         return file;
     }
-    public String cmdrunquicnmap(String ip) throws IOException {
+    public String cmdrunquicnmap2(String ip) throws IOException {
         Long timeStamp = System.currentTimeMillis();
         String time =timeStamp.toString();
         String file ="C:\\temp\\"+time+".txt";
         String path = "nmap -v -sn "+ip+" -oN "+file;
+        System.out.println(path);
+        Runtime run = Runtime.getRuntime();
+        try {
+            Process process = run.exec("cmd.exe /c " + path);
+            InputStream in = process.getInputStream();
+            while (in.read() != -1) {
+                System.out.println(in.read());
+            }
+            in.close();
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+    public String cmdrunquicnmap(String ip) throws IOException {
+        Long timeStamp = System.currentTimeMillis();
+        String time =timeStamp.toString();
+        String file ="C:\\temp\\"+time+".xml";
+        String path = "nmap -v -sn "+ip+" -oX "+file;
         System.out.println(path);
         Runtime run = Runtime.getRuntime();
         try {

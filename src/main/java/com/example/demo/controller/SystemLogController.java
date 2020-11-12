@@ -41,7 +41,8 @@ public class SystemLogController {
         JSONArray jsonArray=new JSONArray();
         for (SystemLog data:userInfos){
             JSONObject jsonObject =new JSONObject();
-            jsonObject.put("tole",data.getRole());
+            jsonObject.put("id",data.getId());
+            jsonObject.put("role",data.getRole());
             jsonObject.put("content",data.getContent());
             jsonObject.put("time",data.getTime());
             jsonArray.add(jsonObject);
@@ -54,12 +55,13 @@ public class SystemLogController {
     @RequestMapping(value = "/getall",method = RequestMethod.POST)
     public String getallinfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.addHeader("Access-Control-Allow-Origin","*");
-        List<SystemLog> userInfos=systemLogService.list();
+        List<SystemLog> sysInfos=systemLogService.list();
         JSONArray jsonArray=new JSONArray();
         JSONObject result = new JSONObject();
-        for (SystemLog data:userInfos){
+        for (SystemLog data:sysInfos){
             JSONObject jsonObject =new JSONObject();
-            jsonObject.put("tole",data.getRole());
+            jsonObject.put("id",data.getId());
+            jsonObject.put("role",data.getRole());
             jsonObject.put("content",data.getContent());
             jsonObject.put("time",data.getTime());
             jsonArray.add(jsonObject);

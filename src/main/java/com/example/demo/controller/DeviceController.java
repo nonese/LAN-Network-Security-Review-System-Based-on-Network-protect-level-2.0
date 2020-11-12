@@ -42,28 +42,37 @@ public class DeviceController {
     SystemLog log =new SystemLog();
     @RequestMapping(value = "/add",method = RequestMethod.POST)
     public String adddevice(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        response.addHeader("Access-Control-Allow-Origin","*");
-        Device device=new Device();
-        device.setArea(request.getParameter("area"));
-        device.setIp(request.getParameter("ip"));
-        device.setMac(request.getParameter("mac"));
-        device.setName(request.getParameter("name"));
-        device.setType(request.getParameter("type"));
-        device.setPortlist(request.getParameter("port"));
-        device.setUuid(request.getParameter("uuid"));
-        deviceService.save(device);
         JSONObject result = new JSONObject();
-        result.put("statuscode","200");
-        result.put("status","success");
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        Date date = new Date();
-        String date2=formatter.format(date);
-        log.setRole("info");
-        log.setTime(date2);
-        log.setContent("uuid："+request.getParameter("uuid")+"增加个人设备成功！");
-        systemLogService.save(log);
-        return result.toString();
+        response.addHeader("Access-Control-Allow-Origin","*");
+        if (Validator.isIpv4(request.getParameter("ip")) && Validator.isMac(request.getParameter("mac"))){
+            Device device=new Device();
+            device.setArea(request.getParameter("area"));
+            device.setIp(request.getParameter("ip"));
+            device.setMac(request.getParameter("mac"));
+            device.setName(request.getParameter("name"));
+            device.setType(request.getParameter("type"));
+            device.setPortlist(request.getParameter("port"));
+            device.setUuid(request.getParameter("uuid"));
+            device.setStatus("wait");
+            deviceService.save(device);
+            result.put("statuscode","200");
+            result.put("status","success");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            Date date = new Date();
+            String date2=formatter.format(date);
+            log.setRole("important");
+            log.setTime(date2);
+            log.setContent("uuid："+request.getParameter("uuid")+"增加个人设备成功！");
+            systemLogService.save(log);
+            return result.toString();
+        }
+        else {
+            result.put("status","ip地址或mac地址不正确");
+            result.put("statuscode","200");
+            return result.toString();
+        }
     }
+    @RequestMapping(value = "/allow",method = RequestMethod.POST)
     public String allowdevice(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.addHeader("Access-Control-Allow-Origin","*");
         Device device=new Device();
@@ -78,7 +87,7 @@ public class DeviceController {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         Date date = new Date();
         String date2=formatter.format(date);
-        log.setRole("info");
+        log.setRole("important");
         log.setTime(date2);
         log.setContent("uuid："+request.getParameter("uuid")+"审批个人设备成功！");
         systemLogService.save(log);
@@ -97,7 +106,7 @@ public class DeviceController {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         Date date = new Date();
         String date2=formatter.format(date);
-        log.setRole("info");
+        log.setRole("critical");
         log.setTime(date2);
         log.setContent("uuid："+request.getParameter("uuid")+"删除个人设备成功！");
         return result.toString();
@@ -140,6 +149,39 @@ public class DeviceController {
         JSONArray ja= new JSONArray();
         QueryWrapper<Device> sectionQueryWrapper = new QueryWrapper<>();
         sectionQueryWrapper.eq("uuid",request.getParameter("uuid"));
+        List<Device> datas = deviceService.list(sectionQueryWrapper);
+        int count = deviceService.count(sectionQueryWrapper);
+        System.out.println(count);
+        System.out.println(datas);
+        if (datas.isEmpty()==true){
+            result.put("status","false");
+        }
+        else {
+            for (Device data : datas) {
+                JSONObject js = new JSONObject();
+                js.put("area",data.getArea());
+                js.put("name",data.getName());
+                js.put("ip",data.getIp());
+                js.put("mac",data.getMac());
+                js.put("type",data.getType());
+                js.put("port",data.getPortlist());
+                js.put("uuid",data.getUuid());
+                ja.add(js);
+            }
+        }
+        result.put("devicelist",ja);
+        result.put("statuscode","200");
+        result.put("count",count);
+        result.put("status","success");
+        return result.toString();
+    }
+    @RequestMapping(value = "/list2",method = RequestMethod.POST)
+    public String list2device(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.addHeader("Access-Control-Allow-Origin","*");
+        JSONObject result = new JSONObject();
+        JSONArray ja= new JSONArray();
+        QueryWrapper<Device> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("status",request.getParameter("status"));
         List<Device> datas = deviceService.list(sectionQueryWrapper);
         int count = deviceService.count(sectionQueryWrapper);
         System.out.println(count);

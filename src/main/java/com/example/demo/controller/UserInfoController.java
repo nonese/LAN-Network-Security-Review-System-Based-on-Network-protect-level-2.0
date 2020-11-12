@@ -58,9 +58,33 @@ public class UserInfoController {
         JSONObject result = new JSONObject();
         result.put("statuscode","200");
         result.put("status","success");
-        log.setRole("info");
+        log.setRole("important");
         log.setTime(date2);
         log.setContent("uuid："+request.getParameter("uuid")+"增加个人信息成功！");
+        systemLogService.save(log);
+        return result.toString();
+    }
+    @RequestMapping(value = "/update",method = RequestMethod.POST)
+    public String updateinfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        Date date = new Date();
+        String date2=formatter.format(date);
+        response.addHeader("Access-Control-Allow-Origin","*");
+        UserInfo ui=new UserInfo();
+        ui.setEmail(request.getParameter("email"));
+        ui.setName(request.getParameter("name"));
+        ui.setQqid(request.getParameter("qq"));
+        ui.setWechatsession(request.getParameter("wechat"));
+        QueryWrapper<UserInfo> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("uuid",request.getParameter("uuid"));
+        System.out.println(request.getParameter("uuid"));
+        userInfoService .update(ui,sectionQueryWrapper);
+        JSONObject result = new JSONObject();
+        result.put("statuscode","200");
+        result.put("status","success");
+        log.setRole("important");
+        log.setTime(date2);
+        log.setContent("uuid："+request.getParameter("uuid")+"修改个人信息成功！");
         systemLogService.save(log);
         return result.toString();
     }
@@ -69,6 +93,7 @@ public class UserInfoController {
         response.addHeader("Access-Control-Allow-Origin","*");
         QueryWrapper<UserInfo> sectionQueryWrapper = new QueryWrapper<>();
         sectionQueryWrapper.eq("uuid",request.getParameter("uuid"));
+        System.out.println(request.getParameter("uuid"));
         List<UserInfo> userInfos=userInfoService.list(sectionQueryWrapper);
         JSONObject result = new JSONObject();
         for (UserInfo data:userInfos){
@@ -98,7 +123,7 @@ public class UserInfoController {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         Date date = new Date();
         String date2=formatter.format(date);
-        log.setRole("info");
+        log.setRole("critical");
         log.setTime(date2);
         log.setContent("用户uuid："+request.getParameter("uuid")+"删除账户！");
         return result.toString();

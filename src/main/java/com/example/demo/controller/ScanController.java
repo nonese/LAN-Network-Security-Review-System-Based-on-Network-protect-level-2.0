@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 
 import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.lang.Validator;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -68,135 +69,160 @@ public class ScanController {
         String uuid =request.getParameter("uuid");
         String ip = request.getParameter("ip");
         String name = request.getParameter("name");
-        if (type.contentEquals("quic")){
-            Scan scan =new Scan();
-            scan.setDate(date2);
-            scan.setUuid(uuid);
-            scan.setType(type);
-            scan.setIp(ip);
-            String pid =UUID.randomUUID().toString().replaceAll("-","");
-            scan.setPid(pid);
-            scan.setStatus("completed");
-            scan.setName(name);
-            scanService.save(scan);
-            String file =runcommand.cmdrunquicnmap(ip);
-            FileReader fileReader =new FileReader(file);
-            String readstring = fileReader.readString();
-            String uploadfile= nessustool.uploadtxtfile(readstring,pid);
-            result.put("filename","assets/file/"+uploadfile);
-            result.put("status","success");
-            log.setRole("info");
-            log.setTime(date2);
-            log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
-        }
-        else if (type.contentEquals("full"))
-        {
-            Scan scan =new Scan();
-            scan.setDate(date2);
-            scan.setUuid(uuid);
-            scan.setType(type);
-            scan.setIp(ip);
-            String pid =UUID.randomUUID().toString().replaceAll("-","");
-            scan.setPid(pid);
-            scan.setStatus("running");
-            scan.setName(name);
-            scanService.save(scan);
-            Thread t = new Thread(){
-                public void run(){
-                    try {
-                        String show =runcommand.cmdrunnmap("192.168.2.220");
-                        FileReader fileReader=new FileReader(show);
-                        //System.out.println(fileReader.readString());
-                        String result =fileReader.readString();
-                        nessustool.uploadtxtfile(result,pid);
-                        QueryWrapper<Scan> sectionQueryWrapper = new QueryWrapper<>();
-                        sectionQueryWrapper.eq("pid",pid);
-                        Scan scan1 =new Scan();
-                        scan1.setStatus("completed");
-                        scanService.update(scan1,sectionQueryWrapper);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        if (Validator.isIpv4(ip)){
+            if (type.contentEquals("quic")){
+                Scan scan =new Scan();
+                scan.setDate(date2);
+                scan.setUuid(uuid);
+                scan.setType(type);
+                scan.setIp(ip);
+                String pid =UUID.randomUUID().toString().replaceAll("-","");
+                scan.setPid(pid);
+                scan.setStatus("completed");
+                scan.setName(name);
+                scanService.save(scan);
+                String file =runcommand.cmdrunquicnmap2(ip);
+                FileReader fileReader =new FileReader(file);
+                String readstring = fileReader.readString();
+                String uploadfile= nessustool.uploadtxtfile(readstring,pid);
+                result.put("filename","assets/file/"+uploadfile);
+                result.put("date",date2);
+                result.put("pid",pid);
+                result.put("status","completed");
+                result.put("scanstatus","success");
+                result.put("msg","task now is complete");
+                result.put("name",name);
+                result.put("type",type);
+                result.put("ip",ip);
+                log.setRole("info");
+                log.setTime(date2);
+                log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
+            }
+            else if (type.contentEquals("full"))
+            {
+                Scan scan =new Scan();
+                scan.setDate(date2);
+                scan.setUuid(uuid);
+                scan.setType(type);
+                scan.setIp(ip);
+                String pid =UUID.randomUUID().toString().replaceAll("-","");
+                scan.setPid(pid);
+                scan.setStatus("running");
+                scan.setName(name);
+                scanService.save(scan);
+                Thread t = new Thread(){
+                    public void run(){
+                        try {
+                            String show =runcommand.cmdrunnmap(ip);
+                            FileReader fileReader=new FileReader(show);
+                            //System.out.println(fileReader.readString());
+                            String result =fileReader.readString();
+                            nessustool.uploadtxtfile(result,pid);
+                            QueryWrapper<Scan> sectionQueryWrapper = new QueryWrapper<>();
+                            sectionQueryWrapper.eq("pid",pid);
+                            Scan scan1 =new Scan();
+                            scan1.setStatus("completed");
+                            scanService.update(scan1,sectionQueryWrapper);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            };
-            t.start();
-            result.put("status","success");
-            result.put("msg","task now is running");
-            log.setRole("info");
-            log.setTime(date2);
-            log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
-        }
-        else if (type.contentEquals("basic")){
-            Scan scan =new Scan();
-            scan.setDate(date2);
-            scan.setUuid(uuid);
-            scan.setType(type);
-            scan.setIp(ip);
-            String pid =UUID.randomUUID().toString().replaceAll("-","");
-            scan.setPid(pid);
-            scan.setStatus("running");
-            scan.setName(name);
-            scanService.save(scan);
-            Thread t = new Thread(){
-                public void run(){
-                    System.out.println("开始执行基础漏扫");
-                    //忽视https错误
-                    trust.trustEveryone();
-                    //创建session
-                    String token = null;
-                    try {
-                        token = nessustool.createssession();
-                        JSONObject jsonObject = JSON.parseObject(nessustool.createscan(name,"no","true",ip,token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
-                        JSONObject scan =jsonObject.getJSONObject("scan");
-                        String id=scan.getString("id");
-                        nessustool.scanlaunch(token,id);
-                        JSONObject jsonObject2=JSON.parseObject(nessustool.getscandetail(token,id));
-                        JSONObject info =jsonObject2.getJSONObject("info");
-                        String status = info.getString("status");
-                        do {
+                };
+                t.start();
+                result.put("scanstatus","success");
+                result.put("status","running");
+                result.put("date",date2);
+                result.put("pid",pid);
+                result.put("name",name);
+                result.put("type",type);
+                result.put("ip",ip);
+                result.put("msg","task now is running");
+                log.setRole("info");
+                log.setTime(date2);
+                log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
+            }
+            else if (type.contentEquals("basic")){
+                Scan scan =new Scan();
+                scan.setDate(date2);
+                scan.setUuid(uuid);
+                scan.setType(type);
+                scan.setIp(ip);
+                String pid =UUID.randomUUID().toString().replaceAll("-","");
+                scan.setPid(pid);
+                scan.setStatus("running");
+                scan.setName(name);
+                scanService.save(scan);
+                Thread t = new Thread(){
+                    public void run(){
+                        System.out.println("开始执行基础漏扫");
+                        //忽视https错误
+                        trust.trustEveryone();
+                        //创建session
+                        String token = null;
+                        try {
+                            token = nessustool.createssession();
+                            JSONObject jsonObject = JSON.parseObject(nessustool.createscan(name,"no","true",ip,token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+                            JSONObject scan =jsonObject.getJSONObject("scan");
+                            String id=scan.getString("id");
+                            nessustool.scanlaunch(token,id);
+                            JSONObject jsonObject2=JSON.parseObject(nessustool.getscandetail(token,id));
+                            JSONObject info =jsonObject2.getJSONObject("info");
+                            String status = info.getString("status");
+                            do {
+                                try {
+                                    Thread.sleep(3000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                JSONObject jsonObject3=JSON.parseObject(nessustool.getscandetail(token,id));
+                                JSONObject info2 =jsonObject3.getJSONObject("info");
+                                status = info2.getString("status");
+                                System.out.println("status:"+status+" ,now waitting!");
+                            }while (status.contentEquals("running"));
+                            String format="html";
+                            JSONObject js =JSON.parseObject(nessustool.creatfile(token, id, format));
+                            String fileid=js.getString("file");
+                            String token2=js.getString("token");
+                            System.out.println(fileid);
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            JSONObject jsonObject3=JSON.parseObject(nessustool.getscandetail(token,id));
-                            JSONObject info2 =jsonObject3.getJSONObject("info");
-                            status = info2.getString("status");
-                            System.out.println("status:"+status+" ,now waitting!");
-                        }while (status.contentEquals("running"));
-                        String format="html";
-                        JSONObject js =JSON.parseObject(nessustool.creatfile(token, id, format));
-                        String fileid=js.getString("file");
-                        String token2=js.getString("token");
-                        System.out.println(fileid);
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException e) {
+                            System.out.println(nessustool.getfilestatus(token,id,fileid));
+                            String content=nessustool.getfile(token,id,fileid);
+                            System.out.println(nessustool.uploadfile(content,pid));
+                            QueryWrapper<Scan> sectionQueryWrapper = new QueryWrapper<>();
+                            sectionQueryWrapper.eq("pid",pid);
+                            Scan scan1 =new Scan();
+                            scan1.setStatus("completed");
+                            scanService.update(scan1,sectionQueryWrapper);
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        System.out.println(nessustool.getfilestatus(token,id,fileid));
-                        String content=nessustool.getfile(token,id,fileid);
-                        System.out.println(nessustool.uploadfile(content,pid));
-                        QueryWrapper<Scan> sectionQueryWrapper = new QueryWrapper<>();
-                        sectionQueryWrapper.eq("pid",pid);
-                        Scan scan1 =new Scan();
-                        scan1.setStatus("completed");
-                        scanService.update(scan1,sectionQueryWrapper);
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            };
-            t.start();
-            result.put("status","success");
-            result.put("msg","task now is running");
-            log.setRole("info");
-            log.setTime(date2);
-            log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
+                };
+                t.start();
+                result.put("scanstatus","success");
+                result.put("status","running");
+                result.put("date",date2);
+                result.put("pid",pid);
+                result.put("msg","task now is running");
+                result.put("name",name);
+                result.put("type",type);
+                result.put("ip",ip);
+                log.setRole("important");
+                log.setTime(date2);
+                log.setContent("uuid："+request.getParameter("uuid")+"添加扫描任务成功！");
+            }
+            else {
+                result.put("scanstatus","false");
+                result.put("msg","错误的扫描类型");
+            }
         }
         else {
-            result.put("status","false");
-            result.put("msg","错误的扫描类型");
+            result.put("scanstatus","false");
+            result.put("msg","ip地址不正确");
         }
         return result.toString();
     }
@@ -212,7 +238,7 @@ public class ScanController {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         Date date = new Date();
         String date2=formatter.format(date);
-        log.setRole("info");
+        log.setRole("critical");
         log.setTime(date2);
         log.setContent("uuid："+request.getParameter("uuid")+"删除个人设备成功！");
         return result.toString();

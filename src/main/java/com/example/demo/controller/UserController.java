@@ -47,8 +47,11 @@ public class UserController {
     @RequestMapping(value = "/login",method = RequestMethod.POST)
     public String login(HttpServletRequest request, HttpServletResponse response) throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        long time = 30*60*1000;//60秒
         Date date = new Date();
         String date2=formatter.format(date);
+        Date date3 = new Date(date.getTime()+time);
+        String date4=formatter.format(date3);
         response.addHeader("Access-Control-Allow-Origin","*");
         String username=request.getParameter("username");
         String password=request.getParameter("password");
@@ -75,12 +78,16 @@ public class UserController {
             String skey = QEncodeUtil.aesEncrypt(Getuuid.geuuid(),CommonCo.COOKIE_SECRET_KEY);
             SessionList session =new SessionList();
             session.setSession(skey);
-            session.setTime(date2);
+            session.setTime(date4);
             session.setUuid(uuid);
             session.setVaild("true");
             sessionListService.save(session);
+            result.put("uuid",uuid);
             result.put("session",skey);
             result.put("role",role);
+            if (role.contentEquals("admin")){result.put("url","index.html");}
+            if (role.contentEquals("op")){result.put("url","op.html");}
+            if (role.contentEquals("nm")){result.put("url","nm.html");}
             result.put("loginstatus","true");
             log.setRole("info");
             log.setTime(date2);
@@ -100,6 +107,7 @@ public class UserController {
         response.addHeader("Access-Control-Allow-Origin","*");
         String username=request.getParameter("username");
         String password=request.getParameter("password");
+        String role=request.getParameter("role");
         String uuid = Getuuid.geuuid();
         columnMap.put("username",username);
         Collection check = userService.listByMap(columnMap);
@@ -110,12 +118,13 @@ public class UserController {
            User user = new User();
             user.setUsername(username);
             user.setPassword(password);
+            user.setRole(role);
             user.setUuid(uuid);
             userService.save(user);
             result.put("Username",username);
             result.put("addstatus","success");
             result.put("url","login.html");
-            log.setRole("info");
+            log.setRole("critical");
             log.setTime(date2);
             log.setContent("创建用户："+username+"成功！");
             systemLogService.save(log);
@@ -138,6 +147,17 @@ public class UserController {
             jsonArray.add(jsonObject);
         }
         result.put("data",jsonArray);
+        result.put("statuscode","200");
+        result.put("status","success");
+        return result.toString();
+    }
+    @RequestMapping(value = "/del",method = RequestMethod.POST)
+    public String del(HttpServletRequest request,HttpServletResponse response) throws Exception {
+        response.addHeader("Access-Control-Allow-Origin","*");
+        QueryWrapper<User> sectionQueryWrapper = new QueryWrapper<>();
+        sectionQueryWrapper.eq("username",request.getParameter("username"));
+        userService.remove(sectionQueryWrapper);
+        JSONObject result = new JSONObject();
         result.put("statuscode","200");
         result.put("status","success");
         return result.toString();
@@ -194,6 +214,7 @@ public class UserController {
                 Date d2=formatter.parse(data.getTime());
                 boolean checktime=d1.before(d2);
                 if (checktime){
+                    result.put("uuid",data.getUuid());
                     result.put("status","success");
                 }
                 else {
