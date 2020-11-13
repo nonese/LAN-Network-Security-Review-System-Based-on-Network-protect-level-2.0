@@ -274,10 +274,10 @@ public class nessustool {
 
         //创建扫描
         //System.out.println(createscan("test2","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
-       // JSONObject jsonObject =JSON.parseObject(createscan("test5","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
-      //  JSONObject scan =jsonObject.getJSONObject("scan");
-      //  String id=scan.getString("id");
-       // System.out.println(id);
+        JSONObject jsonObject =JSON.parseObject(createscan("test5","no","true","192.168.2.220",token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+        JSONObject scan =jsonObject.getJSONObject("scan");
+        String id=scan.getString("id");
+        System.out.println(id);
 
         //获取扫描模板
         //JSONObject json = JSON.parseObject(getscantemplates(token));
@@ -304,7 +304,7 @@ public class nessustool {
         }while (status.contentEquals("running"));
            */
         //开启扫描
-        //scanlaunch(token,id);
+        scanlaunch(token,id);
         //结束扫描
         //scanstop(token,"14");
 
@@ -323,6 +323,7 @@ public class nessustool {
 
         //写入文件
         String content=getfile(token,"29",fileid);
+        System.out.println(content);
         //System.out.println(uploadfile(content));
         //System.out.println(content);
         //System.out.println(uploadfile(content));

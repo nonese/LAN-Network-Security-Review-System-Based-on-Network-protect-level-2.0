@@ -133,6 +133,7 @@ public class DeviceController {
                 js.put("type",data.getType());
                 js.put("port",data.getPortlist());
                 js.put("uuid",data.getUuid());
+                js.put("devicestatus",data.getStatus());
                 ja.add(js);
             }
         }
@@ -166,6 +167,7 @@ public class DeviceController {
                 js.put("type",data.getType());
                 js.put("port",data.getPortlist());
                 js.put("uuid",data.getUuid());
+                js.put("devicestatus",data.getStatus());
                 ja.add(js);
             }
         }

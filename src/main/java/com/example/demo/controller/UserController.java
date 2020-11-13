@@ -86,8 +86,8 @@ public class UserController {
             result.put("session",skey);
             result.put("role",role);
             if (role.contentEquals("admin")){result.put("url","index.html");}
-            if (role.contentEquals("op")){result.put("url","op.html");}
-            if (role.contentEquals("nm")){result.put("url","nm.html");}
+            if (role.contentEquals("op")){result.put("url","index.html");}
+            if (role.contentEquals("nm")){result.put("url","index.html");}
             result.put("loginstatus","true");
             log.setRole("info");
             log.setTime(date2);

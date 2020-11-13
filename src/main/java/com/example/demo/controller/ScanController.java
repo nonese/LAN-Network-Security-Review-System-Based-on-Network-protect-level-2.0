@@ -160,8 +160,11 @@ public class ScanController {
                         //创建session
                         String token = null;
                         try {
-                            token = nessustool.createssession();
+                            System.out.println();
+                             token = nessustool.createssession();
+                            System.out.println(token);
                             JSONObject jsonObject = JSON.parseObject(nessustool.createscan(name,"no","true",ip,token,"731a8e52-3ea6-a291-ec0a-d2ff0619c19d7bd788d6be818b65"));
+                            //System.out.println(jsonObject);
                             JSONObject scan =jsonObject.getJSONObject("scan");
                             String id=scan.getString("id");
                             nessustool.scanlaunch(token,id);

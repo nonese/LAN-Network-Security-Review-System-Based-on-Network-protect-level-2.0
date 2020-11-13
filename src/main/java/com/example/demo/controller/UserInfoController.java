@@ -96,15 +96,19 @@ public class UserInfoController {
         System.out.println(request.getParameter("uuid"));
         List<UserInfo> userInfos=userInfoService.list(sectionQueryWrapper);
         JSONObject result = new JSONObject();
+        if (userInfos.isEmpty()){
+            result.put("statuscode","200");
+            result.put("status","无该用户信息");
+        }
         for (UserInfo data:userInfos){
             result.put("uuid",request.getParameter("uuid"));
             result.put("email",data.getEmail());
             result.put("name",data.getName());
             result.put("qq",data.getQqid());
             result.put("wechat",data.getWechatsession());
+            result.put("statuscode","200");
+            result.put("status","success");
         }
-        result.put("statuscode","200");
-        result.put("status","success");
         return result.toString();
     }
     @RequestMapping(value = "/del",method = RequestMethod.POST)
