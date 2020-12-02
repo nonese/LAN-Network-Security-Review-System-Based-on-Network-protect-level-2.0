@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class nessustool {
-    private final String url = "https://192.168.2.21:8834/";
+    private final String url = "https://192.168.2.124:8834/";
     private final String fileurl = "http://192.168.2.184:8080/";
     private final String accesskey = "b4f014fbcac433d1b06f4f1c56a235a4018f5309c46a82a9cb66f33bd8e78f46";
     private final String screctkey = "cf70c07dcc641b0cf9f9a0b109383f5a8661feaa934f3d99eb8b32da1699de64";

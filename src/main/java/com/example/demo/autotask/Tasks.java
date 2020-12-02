@@ -1,19 +1,26 @@
 package com.example.demo.autotask;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.demo.Util.ParseXml;
 import com.example.demo.Util.Runcommand;
 import com.example.demo.entity.*;
 import com.example.demo.service.*;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 /**
@@ -37,7 +44,9 @@ public class Tasks {
     IScanService scanService;
     @Autowired
     IOverviewService overviewService;
-    //@Scheduled(cron = "0 0 * * * ?")
+    @Autowired
+    ISafereportService safereportService;
+    @Scheduled(cron = "0 0 * * * ?")
     //@Scheduled(fixedRate = 300000)
     public void scheduledTask() throws IOException, InterruptedException {
 
@@ -92,7 +101,7 @@ public class Tasks {
         }
         System.out.println("结束日常扫描！");
     }
-    //@Scheduled(cron = "0 0,30 * * * ?")
+    @Scheduled(cron = "0 0,30 * * * ?")
     /**
      *
      * 此任务用于日常清点在线设备，总设备数等汇报并保存至数据库
@@ -125,5 +134,37 @@ public class Tasks {
         overview.setTotaldevice(String.valueOf(countdevice));
         overviewService.save(overview);
         System.out.println("日常清点结束");
+    }
+    @Scheduled(cron = "0 0 7 * * ? ")
+    //@Scheduled(fixedRate = 3000000)
+    public void scheduledTask3() throws IOException {
+        System.out.println("开始执行360安全周报，"+"任务执行时间：" + LocalDateTime.now());
+        WebClient browser = new WebClient();
+        browser.getOptions().setCssEnabled(false);
+        browser.getOptions().setJavaScriptEnabled(true);
+        browser.getOptions().setThrowExceptionOnScriptError(false);
+        HtmlPage htmlPage = browser.getPage("https://cert.360.cn/warning");
+        browser.waitForBackgroundJavaScript(1000);
+        Document doc = Jsoup.parse(htmlPage.asXml());
+        Elements content = doc.getElementsByClass("news-title");
+        String[] urlall = new String[5];
+        JSONArray jsonArray=new JSONArray();
+        for (Element link : content) {
+            String urlb = link.select("a").attr("href");
+            String title = link.select("a").text();
+            String url = "https://cert.360.cn"+urlb;
+            JSONObject jsonObject =new JSONObject();
+            jsonObject.put("title",title);
+            jsonObject.put("url",url);
+            jsonArray.add(jsonObject);
+        }
+        Map<String,Object> columnMap = new HashMap<>();
+        columnMap.put("id","1");
+        safereportService.removeByMap(columnMap);
+        Safereport sf =new Safereport();
+        sf.setId("1");
+        sf.setContent(jsonArray.toString());
+        safereportService.save(sf);
+        System.out.println("360安全周报"+"任务执行时间：" + LocalDateTime.now());
     }
 }
